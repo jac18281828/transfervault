@@ -1,4 +1,5 @@
 cache/
 out/
 keystore/
+node_modules/
 .DS_Store
