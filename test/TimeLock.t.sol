@@ -51,20 +51,21 @@ contract TimeLockTest is Test {
         new TimeLock(Constant.MAXIMUM_DELAY + delayDelta);
     }
 
-    function testTransactionEarlyForTimeLock() public {
+    function testTransactionEarlyForTimeLock(uint256 timeDelta) public {
+        vm.assume(timeDelta > 1 && timeDelta < _WEEK_DELAY);
         bytes32 txHash = _timeLock.getTxHash(
             _FUNCTION,
             7,
             "abc",
             "data",
-            block.timestamp + _WEEK_DELAY - 1
+            block.timestamp + _WEEK_DELAY - timeDelta
         );
         vm.expectRevert(
             abi.encodeWithSelector(
                 TimeLock.TimestampNotInRange.selector,
                 txHash,
                 block.timestamp,
-                block.timestamp + _WEEK_DELAY - 1
+                block.timestamp + _WEEK_DELAY - timeDelta
             )
         );
         vm.prank(_OWNER);
@@ -73,24 +74,32 @@ contract TimeLockTest is Test {
             7,
             "abc",
             "data",
-            block.timestamp + _WEEK_DELAY - 1
+            block.timestamp + _WEEK_DELAY - timeDelta
         );
     }
 
-    function testTransactionLateForTimeLock() public {
+    function testTransactionLateForTimeLock(uint256 timeDelta) public {
+        vm.assume(
+            timeDelta > 0 &&
+                timeDelta <
+                (Constant.UINT_MAX - _WEEK_DELAY - Constant.GRACE_PERIOD)
+        );
         bytes32 txHash = _timeLock.getTxHash(
             _FUNCTION,
             7,
             "abc",
             "data",
-            block.timestamp + _WEEK_DELAY + Constant.GRACE_PERIOD + 1
+            block.timestamp + _WEEK_DELAY + Constant.GRACE_PERIOD + timeDelta
         );
         vm.expectRevert(
             abi.encodeWithSelector(
                 TimeLock.TimestampNotInRange.selector,
                 txHash,
                 block.timestamp,
-                block.timestamp + _WEEK_DELAY + Constant.GRACE_PERIOD + 1
+                block.timestamp +
+                    _WEEK_DELAY +
+                    Constant.GRACE_PERIOD +
+                    timeDelta
             )
         );
 
@@ -100,7 +109,7 @@ contract TimeLockTest is Test {
             7,
             "abc",
             "data",
-            block.timestamp + _WEEK_DELAY + Constant.GRACE_PERIOD + 1
+            block.timestamp + _WEEK_DELAY + Constant.GRACE_PERIOD + timeDelta
         );
     }
 

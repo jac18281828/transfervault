@@ -19,9 +19,13 @@ contract TimeLock is Ownable {
         uint256 minDelay,
         uint256 maxDelay
     );
+    error NotInQueue(bytes32 txHash);
+    error TransactionLocked(bytes32 txHash);
+    error TransactionStale(bytes32 txHash);
+    error ExecutionFailed(bytes32 txHash);
 
     event ReceiveEth(address sender, uint256 amount);
-    event TransferEth(address recipient, uint256 amount);
+    event SendEth(address recipient, uint256 amount);
     event CancelTransaction(
         bytes32 indexed txHash,
         address indexed target,
@@ -63,6 +67,14 @@ contract TimeLock is Ownable {
             );
         }
         _lockTime = _lockDelay;
+    }
+
+    receive() external payable {
+        emit ReceiveEth(msg.sender, msg.value);
+    }
+
+    fallback() external payable {
+        emit SendEth(msg.sender, msg.value);
     }
 
     function queueTransaction(
@@ -118,8 +130,8 @@ contract TimeLock is Ownable {
             data,
             scheduleTime
         );
-        require(_queuedTransaction[txHash], "Not queued");
-        _queuedTransaction[txHash] = false;
+        if (!_queuedTransaction[txHash]) revert NotInQueue(txHash);
+        clearQueued(txHash);
 
         emit CancelTransaction(
             txHash,
@@ -129,14 +141,6 @@ contract TimeLock is Ownable {
             data,
             scheduleTime
         );
-    }
-
-    receive() external payable {
-        emit ReceiveEth(msg.sender, msg.value);
-    }
-
-    fallback() external payable {
-        emit TransferEth(msg.sender, msg.value);
     }
 
     function executeTransaction(
@@ -149,16 +153,12 @@ contract TimeLock is Ownable {
         bytes32 txHash = keccak256(
             abi.encode(target, value, signature, data, scheduleTime)
         );
-        require(_queuedTransaction[txHash], "Not queued");
+        if (!_queuedTransaction[txHash]) revert NotInQueue(txHash);
         uint256 blockTime = getBlockTimestamp();
-        require(blockTime >= scheduleTime, "Transaction is locked");
-        require(
-            blockTime <= (_lockTime + Constant.GRACE_PERIOD),
-            "Transaction is stale"
-        );
-        // overwrite memory to protect against value rebinding
-        _queuedTransaction[txHash] = false;
-        delete _queuedTransaction[txHash];
+        if (blockTime < scheduleTime) revert TransactionLocked(txHash);
+        if (blockTime > (_lockTime + Constant.GRACE_PERIOD))
+            revert TransactionStale(txHash);
+        clearQueued(txHash);
 
         bytes memory callData;
 
@@ -175,7 +175,7 @@ contract TimeLock is Ownable {
         (bool ok, bytes memory returnData) = target.call{value: value}(
             callData
         );
-        require(ok, "Execution reverted.");
+        if (!ok) revert ExecutionFailed(txHash);
 
         emit ExecuteTransaction(
             txHash,
@@ -202,7 +202,13 @@ contract TimeLock is Ownable {
         return txHash;
     }
 
-    function getBlockTimestamp() internal view returns (uint256) {
+    function getBlockTimestamp() private view returns (uint256) {
         return block.timestamp;
+    }
+
+    function clearQueued(bytes32 txHash) private {
+        // overwrite memory to protect against value rebinding
+        _queuedTransaction[txHash] = false;
+        delete _queuedTransaction[txHash];
     }
 }

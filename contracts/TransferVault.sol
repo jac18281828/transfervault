@@ -8,9 +8,17 @@ import "../contracts/Constant.sol";
 import "../contracts/TimeLock.sol";
 
 contract TransferVault {
+    error FallbackNotPermitted();
+    error NoShares();
+    error TransactionInProgress(address sender);
+
+    error InsufficientShares(uint256 requested, uint256 available);
+    error InsufficientBalance(uint256 requested, uint256 available);
+
     event Deposit(uint256 shares);
     event Withdraw(uint256 shares, address _to);
     event Payment(uint256 amount, address _to);
+
     TimeLock private immutable _timeLock;
     ERC20PresetMinterPauser public immutable _transferToken;
 
@@ -22,7 +30,7 @@ contract TransferVault {
     constructor() {
         _timeLock = new TimeLock(Constant.MINIMUM_DELAY);
         _transferToken = new ERC20PresetMinterPauser(
-            "VaultxTransferToken",
+            "VaultXTransferToken",
             "VTT20"
         );
     }
@@ -30,37 +38,38 @@ contract TransferVault {
     event log_uint256(uint256 _amount);
 
     receive() external payable {
-        revert("Must deposit");
+        revert FallbackNotPermitted();
     }
 
     fallback() external payable {
-        revert("Must pay");
+        revert FallbackNotPermitted();
     }
 
     function deposit() external payable {
         uint256 _amount = msg.value;
-        require(_amount > 0, "No shares");
+        if (_amount == 0) revert NoShares();
         _mint(msg.sender, _amount);
         emit Deposit(_amount);
     }
 
     function withdraw(uint256 _shares) external {
-        require(
-            _balanceOf[msg.sender] >= _shares,
-            "Insufficient shares available"
-        );
-        require(_scheduleTime[msg.sender] == 0, "Transaction in process");
+        if (_balanceOf[msg.sender] < _shares) {
+            revert InsufficientShares(_shares, _balanceOf[msg.sender]);
+        }
+
+        if (_scheduleTime[msg.sender] > 0)
+            revert TransactionInProgress(msg.sender);
+
         _transferToken.transferFrom(msg.sender, address(this), _shares);
         _burn(msg.sender, msg.sender, _shares);
         emit Withdraw(_shares, msg.sender);
     }
 
     function authorize(address _to, uint256 _shares) external {
-        require(
-            _balanceOf[msg.sender] >= _shares,
-            "Insufficient shares available"
-        );
-        require(_scheduleTime[_to] == 0, "Transaction in process");
+        if (_balanceOf[msg.sender] < _shares) {
+            revert InsufficientShares(_shares, _balanceOf[msg.sender]);
+        }
+        if (_scheduleTime[_to] > 0) revert TransactionInProgress(msg.sender);
         _transferToken.transferFrom(msg.sender, address(this), _shares);
         _burn(msg.sender, _to, _shares);
         emit Withdraw(_shares, _to);
@@ -71,7 +80,9 @@ contract TransferVault {
     }
 
     function pay(address _to, uint256 _amount) public {
-        require(_paymentFor[_to] >= _amount, "Insufficient funds");
+        if (_paymentFor[_to] < _amount) {
+            revert InsufficientBalance(_paymentFor[_to], _amount);
+        }
         _timeLock.executeTransaction(_to, _amount, "", "", _scheduleTime[_to]);
         _scheduleTime[_to] = 0;
         delete _scheduleTime[_to];
