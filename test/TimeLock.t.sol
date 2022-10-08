@@ -26,7 +26,7 @@ contract TimeLockTest is Test {
         vm.assume(delayDelta > 0 && delayDelta < Constant.MINIMUM_DELAY);
         vm.expectRevert(
             abi.encodeWithSelector(
-                TimeLock.RequiredDelayNotInRange.selector,
+                TimeLocker.RequiredDelayNotInRange.selector,
                 Constant.MINIMUM_DELAY - delayDelta,
                 Constant.MINIMUM_DELAY,
                 Constant.MAXIMUM_DELAY
@@ -42,7 +42,7 @@ contract TimeLockTest is Test {
         );
         vm.expectRevert(
             abi.encodeWithSelector(
-                TimeLock.RequiredDelayNotInRange.selector,
+                TimeLocker.RequiredDelayNotInRange.selector,
                 Constant.MAXIMUM_DELAY + delayDelta,
                 Constant.MINIMUM_DELAY,
                 Constant.MAXIMUM_DELAY
@@ -62,7 +62,7 @@ contract TimeLockTest is Test {
         );
         vm.expectRevert(
             abi.encodeWithSelector(
-                TimeLock.TimestampNotInRange.selector,
+                TimeLocker.TimestampNotInRange.selector,
                 txHash,
                 block.timestamp,
                 block.timestamp + _WEEK_DELAY - timeDelta
@@ -93,7 +93,7 @@ contract TimeLockTest is Test {
         );
         vm.expectRevert(
             abi.encodeWithSelector(
-                TimeLock.TimestampNotInRange.selector,
+                TimeLocker.TimestampNotInRange.selector,
                 txHash,
                 block.timestamp,
                 block.timestamp +
@@ -152,7 +152,10 @@ contract TimeLockTest is Test {
         );
         assertTrue(_timeLock._queuedTransaction(hashValue));
         vm.expectRevert(
-            abi.encodeWithSelector(TimeLock.AlreadyInQueue.selector, hashValue)
+            abi.encodeWithSelector(
+                TimeLocker.AlreadyInQueue.selector,
+                hashValue
+            )
         );
         vm.prank(_OWNER);
         _timeLock.queueTransaction(
@@ -198,6 +201,27 @@ contract TimeLockTest is Test {
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(_NOT_OWNER);
         _timeLock.cancelTransaction(
+            _FUNCTION,
+            7,
+            "abc",
+            "data",
+            block.timestamp + _WEEK_DELAY
+        );
+    }
+
+    function testExecuteRequiresOwner() public {
+        vm.prank(_OWNER);
+        _timeLock.queueTransaction(
+            _FUNCTION,
+            7,
+            "abc",
+            "data",
+            block.timestamp + _WEEK_DELAY
+        );
+        vm.expectRevert("Ownable: caller is not the owner");
+        vm.warp(block.timestamp + _WEEK_DELAY);
+        vm.prank(_NOT_OWNER);
+        _timeLock.executeTransaction(
             _FUNCTION,
             7,
             "abc",

@@ -6,19 +6,9 @@ import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol"
 
 import "../contracts/Constant.sol";
 import "../contracts/TimeLock.sol";
+import "../contracts/Vault.sol";
 
-contract TransferVault {
-    error FallbackNotPermitted();
-    error NoShares();
-    error TransactionInProgress(address sender);
-
-    error InsufficientShares(uint256 requested, uint256 available);
-    error InsufficientBalance(uint256 requested, uint256 available);
-
-    event Deposit(uint256 shares);
-    event Withdraw(uint256 shares, address _to);
-    event Payment(uint256 amount, address _to);
-
+contract TransferVault is Vault {
     TimeLock private immutable _timeLock;
     ERC20PresetMinterPauser public immutable _transferToken;
 

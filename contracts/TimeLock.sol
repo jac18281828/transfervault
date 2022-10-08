@@ -4,54 +4,12 @@ pragma solidity ^0.8.15;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../contracts/Constant.sol";
+import "../contracts/TimeLocker.sol";
 
 // based on https://github.com/compound-finance/compound-protocol/blob/a3214f67b73310d547e00fc578e8355911c9d376/contracts/Timelock.sol
 
-contract TimeLock is Ownable {
-    error AlreadyInQueue(bytes32 txHash);
-    error TimestampNotInRange(
-        bytes32 txHash,
-        uint256 timestamp,
-        uint256 scheduleTime
-    );
-    error RequiredDelayNotInRange(
-        uint256 lockDelay,
-        uint256 minDelay,
-        uint256 maxDelay
-    );
-    error NotInQueue(bytes32 txHash);
-    error TransactionLocked(bytes32 txHash);
-    error TransactionStale(bytes32 txHash);
-    error ExecutionFailed(bytes32 txHash);
-
-    event ReceiveEth(address sender, uint256 amount);
-    event SendEth(address recipient, uint256 amount);
-    event CancelTransaction(
-        bytes32 indexed txHash,
-        address indexed target,
-        uint256 value,
-        string signature,
-        bytes data,
-        uint256 scheduleTime
-    );
-    event ExecuteTransaction(
-        bytes32 indexed txHash,
-        address indexed target,
-        uint256 value,
-        string signature,
-        bytes data,
-        uint256 scheduleTime
-    );
-    event QueueTransaction(
-        bytes32 indexed txHash,
-        address indexed target,
-        uint256 value,
-        string signature,
-        bytes data,
-        uint256 scheduleTime
-    );
-
-    uint256 public _lockTime;
+contract TimeLock is Ownable, TimeLocker {
+    uint256 public immutable _lockTime;
 
     mapping(bytes32 => bool) public _queuedTransaction;
 
