@@ -6,11 +6,11 @@ Deployed to `0x1E593FC13aE2FAa53ca6fB7f2d664478229C363A`
 
 Things to try:
 
-Deploy the smart contract
-
-1. forge create --contracts contracts/TransferVault.sol --rpc-url ${DEVNET_RPC_URL} --private-key ${ETH_DEV_PRIVATE} --etherscan-api-key ${ETHERSCAN_API_KEY} --verify TransferVault
+1. Deploy the smart contract
 
 ```
+$ forge create --contracts contracts/TransferVault.sol --rpc-url ${DEVNET_RPC_URL} --private-key ${ETH_DEV_PRIVATE} --etherscan-api-key ${ETHERSCAN_API_KEY} --verify TransferVault
+
 Compiler run successful
 Deployer: 0xABCDEFG
 Deployed to: 0x1E593FC13aE2FAa53ca6fB7f2d664478229C363A
@@ -96,5 +96,7 @@ type                    2
 
 And the balance:
 
+```
 $ cast call 0x1E593FC13aE2FAa53ca6fB7f2d664478229C363A "balance(address)" --rpc-url  ${DEVNET_RPC_URL} ${ETH_DEV_PUBLIC} 
 0x0000000000000000000000000000000000000000000000000000000000000001
+```
