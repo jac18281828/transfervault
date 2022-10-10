@@ -25,8 +25,6 @@ contract TransferVault is Vault {
         );
     }
 
-    event log_uint256(uint256 _amount);
-
     receive() external payable {
         revert FallbackNotPermitted();
     }
@@ -93,7 +91,7 @@ contract TransferVault is Vault {
         _balanceOf[_from] -= _shares;
         _transferToken.burn(_shares);
         _paymentFor[_to] += _shares;
-        _scheduleTime[_to] = block.timestamp + Constant.MINIMUM_DELAY;
+        _scheduleTime[_to] = getBlockTimestamp() + Constant.MINIMUM_DELAY;
         payable(_timeLock).transfer(_shares);
         _timeLock.queueTransaction(_to, _shares, "", "", _scheduleTime[_to]);
     }
@@ -102,5 +100,10 @@ contract TransferVault is Vault {
         totalSupply += _shares;
         _balanceOf[_to] += _shares;
         _transferToken.mint(_to, _shares);
+    }
+
+    function getBlockTimestamp() private view returns (uint256) {
+        // solhint-disable-next-line not-rely-on-time
+        return block.timestamp;
     }
 }

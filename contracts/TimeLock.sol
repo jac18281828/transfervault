@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../contracts/Constant.sol";
 import "../contracts/TimeLocker.sol";
 
-// based on https://github.com/compound-finance/compound-protocol/blob/a3214f67b73310d547e00fc578e8355911c9d376/contracts/Timelock.sol
-
+// modified version of
+// https://github.com/compound-finance/compound-protocol/blob/a3214f67b73310d547e00fc578e8355911c9d376/contracts/Timelock.sol
 contract TimeLock is Ownable, TimeLocker {
     uint256 public immutable _lockTime;
 
@@ -108,8 +108,12 @@ contract TimeLock is Ownable, TimeLocker {
         bytes calldata data,
         uint256 scheduleTime
     ) external payable onlyOwner returns (bytes memory) {
-        bytes32 txHash = keccak256(
-            abi.encode(target, value, signature, data, scheduleTime)
+        bytes32 txHash = getTxHash(
+            target,
+            value,
+            signature,
+            data,
+            scheduleTime
         );
         if (!_queuedTransaction[txHash]) revert NotInQueue(txHash);
         uint256 blockTime = getBlockTimestamp();
@@ -129,7 +133,7 @@ contract TimeLock is Ownable, TimeLocker {
             );
         }
 
-        // solhint-disable-next-line security/no-call-value
+        // solhint-disable-next-line avoid-low-level-calls
         (bool ok, bytes memory returnData) = target.call{value: value}(
             callData
         );
@@ -161,6 +165,7 @@ contract TimeLock is Ownable, TimeLocker {
     }
 
     function getBlockTimestamp() private view returns (uint256) {
+        // solhint-disable-next-line not-rely-on-time
         return block.timestamp;
     }
 

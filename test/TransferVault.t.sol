@@ -102,7 +102,7 @@ contract TransferVaultTest is Test {
             _DEPOSIT
         );
         _transferVault.withdraw(_DEPOSIT);
-        // solhint-disable-next-line security/no-call-value
+        // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory returnData) = address(_transferVault).call{
             value: _DEPOSIT
         }("");
@@ -133,7 +133,7 @@ contract TransferVaultTest is Test {
             _transferVault.deposit.selector
         );
         vm.startPrank(_OWNER);
-        // solhint-disable-next-line security/no-call-value
+        // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory returnData) = payable(_transferVault).call{
             value: _DEPOSIT
         }(depositData);

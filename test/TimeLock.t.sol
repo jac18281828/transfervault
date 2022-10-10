@@ -9,10 +9,11 @@ import "../contracts/TimeLock.sol";
 contract TimeLockTest is Test {
     uint256 private constant _WEEK_DELAY = 7 days;
     address private constant _FUNCTION = address(0x7);
-    address private immutable _OWNER = address(0xffdd);
     address private constant _NOT_OWNER = address(0xffee);
     address private constant _TYCOON = address(0x1001);
     address private constant _JOE = address(0x1002);
+    // solhint-disable-next-line var-name-mixedcase
+    address private immutable _OWNER = address(0xffdd);
 
     TimeLock private _timeLock;
 
@@ -254,7 +255,7 @@ contract TimeLockTest is Test {
     function testKingMaker() public {
         vm.deal(_TYCOON, 10 wei);
         vm.prank(_TYCOON);
-        // solhint-disable-next-line security/no-call-value
+        // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory _ignore) = _JOE.call{value: 1 wei}("");
         emit log_bytes(_ignore);
         assertTrue(success);
