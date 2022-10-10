@@ -26,7 +26,7 @@ contract TransferVaultTest is Test {
 
     function testInitialDeposit() public {
         sendMoneySoon();
-        assertEq(_transferVault._transferToken().balanceOf(_OWNER), _DEPOSIT);
+        assertEq(_transferVault.shares(_OWNER), _DEPOSIT);
         assertEq(address(_transferVault).balance, _DEPOSIT);
         assertEq(_transferVault.totalSupply(), _DEPOSIT);
     }

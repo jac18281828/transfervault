@@ -10,7 +10,7 @@ interface Vault {
     error InsufficientBalance(uint256 requested, uint256 available);
 
     event Deposit(uint256 shares);
-    event Withdraw(uint256 shares, address _to);
+    event Withdraw(uint256 shares, address _to, uint256 timeAvailable);
     event Payment(uint256 amount, address _to);
 
     function deposit() external payable;

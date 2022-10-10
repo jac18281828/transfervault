@@ -41,26 +41,20 @@ contract TransferVault is Vault {
     }
 
     function withdraw(uint256 _shares) external {
-        if (_balanceOf[msg.sender] < _shares) {
-            revert InsufficientShares(_shares, _balanceOf[msg.sender]);
-        }
-
-        if (_scheduleTime[msg.sender] > 0)
-            revert TransactionInProgress(msg.sender);
-
-        _transferToken.transferFrom(msg.sender, address(this), _shares);
-        _burn(msg.sender, msg.sender, _shares);
-        emit Withdraw(_shares, msg.sender);
+        authorize(msg.sender, _shares);
     }
 
-    function authorize(address _to, uint256 _shares) external {
+    function authorize(address _to, uint256 _shares) public {
         if (_balanceOf[msg.sender] < _shares) {
             revert InsufficientShares(_shares, _balanceOf[msg.sender]);
         }
         if (_scheduleTime[_to] > 0) revert TransactionInProgress(msg.sender);
         _transferToken.transferFrom(msg.sender, address(this), _shares);
         _burn(msg.sender, _to, _shares);
-        emit Withdraw(_shares, _to);
+        uint256 scheduleTime = getBlockTimestamp() + Constant.MINIMUM_DELAY;
+        _scheduleTime[_to] = scheduleTime;
+        _timeLock.queueTransaction(_to, _shares, "", "", scheduleTime);
+        emit Withdraw(_shares, _to, scheduleTime);
     }
 
     function pay(uint256 _amount) public {
@@ -78,6 +72,10 @@ contract TransferVault is Vault {
         emit Payment(_amount, _to);
     }
 
+    function shares(address _from) external view returns (uint256) {
+        return _transferToken.balanceOf(_from);
+    }
+
     function balance(address _from) external view returns (uint256) {
         return _paymentFor[_from];
     }
@@ -91,9 +89,7 @@ contract TransferVault is Vault {
         _balanceOf[_from] -= _shares;
         _transferToken.burn(_shares);
         _paymentFor[_to] += _shares;
-        _scheduleTime[_to] = getBlockTimestamp() + Constant.MINIMUM_DELAY;
         payable(_timeLock).transfer(_shares);
-        _timeLock.queueTransaction(_to, _shares, "", "", _scheduleTime[_to]);
     }
 
     function _mint(address _to, uint256 _shares) private {
