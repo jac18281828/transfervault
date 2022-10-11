@@ -5,6 +5,7 @@ interface Vault {
     error FallbackNotPermitted();
     error NoShares();
     error TransactionInProgress(address sender);
+    error NotPending(address payee);
 
     error InsufficientShares(uint256 requested, uint256 available);
     error InsufficientBalance(uint256 requested, uint256 available);
@@ -17,11 +18,21 @@ interface Vault {
 
     function withdraw(uint256 _shares) external;
 
-    function authorize(address _to, uint256 _shares) external;
+    function approve(address _to) external;
+
+    function approve(
+        address _to,
+        uint256 _balance,
+        uint256 _shares
+    ) external;
 
     function pay(uint256 _amount) external;
 
     function pay(address _to, uint256 _amount) external;
+
+    function cancel(uint256 _amount) external;
+
+    function cancel(address _to, uint256 _amount) external;
 
     function balance(address _from) external view returns (uint256);
 }

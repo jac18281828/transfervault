@@ -30,7 +30,7 @@ contract TransferVault is Vault {
     }
 
     fallback() external payable {
-        revert FallbackNotPermitted();
+        pay(msg.sender, balance(msg.sender));
     }
 
     function deposit() external payable {
@@ -41,20 +41,39 @@ contract TransferVault is Vault {
     }
 
     function withdraw(uint256 _shares) external {
-        authorize(msg.sender, _shares);
+        approve(msg.sender, balance(msg.sender), _shares);
     }
 
-    function authorize(address _to, uint256 _shares) public {
-        if (_balanceOf[msg.sender] < _shares) {
-            revert InsufficientShares(_shares, _balanceOf[msg.sender]);
+    function approve(address _to) public {
+        uint256 toBalance = balance(_to);
+        uint256 toShares = shares(_to);
+        if (toBalance == 0 && toShares == 0) {
+            revert InsufficientShares(toShares, toShares);
         }
-        if (_scheduleTime[_to] > 0) revert TransactionInProgress(msg.sender);
-        _transferToken.transferFrom(msg.sender, address(this), _shares);
-        _burn(msg.sender, _to, _shares);
+        approve(_to, toBalance, toShares);
+    }
+
+    function approve(
+        address _to,
+        uint256 _balance,
+        uint256 _shares
+    ) public {
+        uint256 availableQty = balance(_to);
+        if (availableQty < _balance) {
+            revert InsufficientBalance(_balance, availableQty);
+        }
+        if (_scheduleTime[_to] > 0) {
+            revert TransactionInProgress(msg.sender);
+        }
+        if (_shares > 0) {
+            _transferToken.transferFrom(msg.sender, address(this), _shares);
+            _burn(msg.sender, _to, _shares);
+        }
+        uint256 amountClaimed = _balance + _shares;
         uint256 scheduleTime = getBlockTimestamp() + Constant.MINIMUM_DELAY;
         _scheduleTime[_to] = scheduleTime;
-        _timeLock.queueTransaction(_to, _shares, "", "", scheduleTime);
-        emit Withdraw(_shares, _to, scheduleTime);
+        _timeLock.queueTransaction(_to, amountClaimed, "", "", scheduleTime);
+        emit Withdraw(amountClaimed, _to, scheduleTime);
     }
 
     function pay(uint256 _amount) public {
@@ -62,22 +81,39 @@ contract TransferVault is Vault {
     }
 
     function pay(address _to, uint256 _amount) public {
-        if (_paymentFor[_to] < _amount) {
+        if (_paymentFor[_to] == 0 || _paymentFor[_to] < _amount) {
             revert InsufficientBalance(_paymentFor[_to], _amount);
         }
-        _timeLock.executeTransaction(_to, _amount, "", "", _scheduleTime[_to]);
-        _scheduleTime[_to] = 0;
-        delete _scheduleTime[_to];
+        uint256 scheduleTime = _scheduleTime[_to];
+        clearSchedule(_to);
         _paymentFor[_to] -= _amount;
+        _timeLock.executeTransaction(_to, _amount, "", "", scheduleTime);
         emit Payment(_amount, _to);
     }
 
-    function shares(address _from) external view returns (uint256) {
+    function cancel(uint256 _amount) external {
+        cancel(msg.sender, _amount);
+    }
+
+    function cancel(address _to, uint256 _amount) public {
+        if (_scheduleTime[_to] == 0) {
+            revert NotPending(_to);
+        }
+        _timeLock.cancelTransaction(_to, _amount, "", "", _scheduleTime[_to]);
+        clearSchedule(_to);
+    }
+
+    function shares(address _from) public view returns (uint256) {
         return _transferToken.balanceOf(_from);
     }
 
-    function balance(address _from) external view returns (uint256) {
+    function balance(address _from) public view returns (uint256) {
         return _paymentFor[_from];
+    }
+
+    function clearSchedule(address _to) private {
+        _scheduleTime[_to] = 0;
+        delete _scheduleTime[_to];
     }
 
     function _burn(

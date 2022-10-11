@@ -85,11 +85,32 @@ contract TransferVaultTest is Test {
             address(_transferVault),
             _DEPOSIT
         );
-        _transferVault.authorize(_SPENDER, _DEPOSIT);
+        _transferVault.approve(_SPENDER, 0, _DEPOSIT);
         assertEq(_transferVault.balance(_SPENDER), _DEPOSIT);
         vm.warp(block.timestamp + Constant.MINIMUM_DELAY);
         _transferVault.pay(_SPENDER, _DEPOSIT);
         vm.stopPrank();
+        assertEq(_transferVault.balance(_SPENDER), 0);
+        assertEq(_transferVault.shares(_SPENDER), 0);
+        assertEq(_SPENDER.balance, _DEPOSIT);
+    }
+
+    function testWithdrawAndCancelThenResume() public {
+        sendMoneySoon();
+        vm.startPrank(_OWNER);
+        _transferVault._transferToken().approve(
+            address(_transferVault),
+            _DEPOSIT
+        );
+        _transferVault.approve(_SPENDER, 0, _DEPOSIT);
+        assertEq(_transferVault.balance(_SPENDER), _DEPOSIT);
+        _transferVault.cancel(_SPENDER, _DEPOSIT);
+        assertEq(_transferVault.balance(_SPENDER), _DEPOSIT);
+        _transferVault.approve(_SPENDER, _DEPOSIT, 0);
+        vm.warp(block.timestamp + Constant.MINIMUM_DELAY);
+        _transferVault.pay(_SPENDER, _DEPOSIT);
+        vm.stopPrank();
+        assertEq(_transferVault.shares(_SPENDER), 0);
         assertEq(_transferVault.balance(_SPENDER), 0);
         assertEq(_SPENDER.balance, _DEPOSIT);
     }
