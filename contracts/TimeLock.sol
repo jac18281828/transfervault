@@ -118,7 +118,7 @@ contract TimeLock is Ownable, TimeLocker {
         if (!_queuedTransaction[txHash]) revert NotInQueue(txHash);
         uint256 blockTime = getBlockTimestamp();
         if (blockTime < scheduleTime) revert TransactionLocked(txHash);
-        if (blockTime > (_lockTime + Constant.GRACE_PERIOD))
+        if (blockTime > (scheduleTime + Constant.GRACE_PERIOD))
             revert TransactionStale(txHash);
         clearQueued(txHash);
 

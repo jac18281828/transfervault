@@ -231,7 +231,11 @@ contract TimeLockTest is Test {
         );
     }
 
-    function testExecuteTransaction() public {
+    function testExecuteTransaction(uint256 systemClock) public {
+        vm.assume(
+            systemClock < Constant.UINT_MAX - _WEEK_DELAY - block.timestamp
+        );
+        vm.warp(block.timestamp + systemClock);
         FlagSet flag = new FlagSet();
         address flagMock = address(flag);
         bytes memory data = abi.encodeWithSelector(flag.set.selector);
