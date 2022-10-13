@@ -5,6 +5,7 @@ A simple vault smart contract example.
 | Contract          | Ethereum Address                           | Version |
 | ----------------- | ------------------------------------------ | ------- |
 | TransferVault     | 0xc0B89372454898a9Db24F21BC99BB35A5110F0E6 | 0.0.8   |
+| ERC20 VaultXTransferToken | 0x800Bb943eF526B752a38473be3b3929454460222 | 0.0.8 | 
 
 
 View it on [Etherscan](https://goerli.etherscan.io/address/0xc0B89372454898a9Db24F21BC99BB35A5110F0E6)
