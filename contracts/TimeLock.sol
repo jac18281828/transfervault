@@ -31,8 +31,8 @@ contract TimeLock is Ownable, TimeLocker {
         emit ReceiveEth(msg.sender, msg.value);
     }
 
-    fallback() external payable {
-        emit SendEth(msg.sender, msg.value);
+    fallback() external {
+        revert NotPermitted(msg.sender);
     }
 
     function queueTransaction(

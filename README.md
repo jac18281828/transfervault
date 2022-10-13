@@ -53,8 +53,10 @@ Check the transaction on [Etherscan](https://goerli.etherscan.io/tx/0x659beb7737
 
 3. Approve the return of the tokens from the local wallet
 
+        This approves the ERC20 Token transfer from your wallet to the Vault Contract so the address being approved is that of the contract itself.  This is sent to the address of the Token contract.
+
 ```
-$ cast send 0x8f6DFC7460ed703733De99721018709d0724B904 "approve(address, uint256)" --private-key ${ETH_DEV_PRIVATE} --rpc-url  ${DEVNET_RPC_URL} 0x1
+$ cast send 0x8f6DFC7460ed703733De99721018709d0724B904 "approve(address, uint256)" --private-key ${ETH_DEV_PRIVATE} --rpc-url  0x1E593FC13aE2FAa53ca6fB7f2d664478229C363A 0x1
 E593FC13aE2FAa53ca6fB7f2d664478229C363A "1 wei"
 
 blockHash               0x0a3eb35882b3b1d664ece2e7459f97932d180d0dd94aebe59a3968e2c2a25c44
@@ -100,3 +102,6 @@ And the balance:
 $ cast call 0x1E593FC13aE2FAa53ca6fB7f2d664478229C363A "balance(address)" --rpc-url  ${DEVNET_RPC_URL} ${ETH_DEV_PUBLIC} 
 0x0000000000000000000000000000000000000000000000000000000000000001
 ```
+
+
+5. Wait for the timelock and then pay eth

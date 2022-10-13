@@ -280,6 +280,20 @@ contract TimeLockTest is Test {
         _timeLock.executeTransaction(_JOE, 10 wei, "", "", scheduleTime);
         assertEq(_JOE.balance, 10 wei);
     }
+
+    function testFallbackNotAllowed() public {
+        vm.deal(_JOE, 1 ether);
+        vm.prank(_JOE);
+        payable(_timeLock).transfer(1 ether);
+        vm.expectRevert(
+            abi.encodeWithSelector(TimeLocker.NotPermitted.selector, _JOE)
+        );
+        vm.prank(_JOE);
+        (bool ok, bytes memory retData) = address(_timeLock).call("fallback()");
+        // unreachable but solc still warns without it
+        assertTrue(ok);
+        emit log_bytes(retData);
+    }
 }
 
 contract FlagSet {

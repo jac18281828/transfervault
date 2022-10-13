@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 interface TimeLocker {
+    error NotPermitted(address sender);
     error AlreadyInQueue(bytes32 txHash);
     error TimestampNotInRange(
         bytes32 txHash,

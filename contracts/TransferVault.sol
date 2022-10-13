@@ -29,7 +29,8 @@ contract TransferVault is Vault {
         revert FallbackNotPermitted();
     }
 
-    fallback() external payable {
+    // solhint-disable-next-line payable-fallback
+    fallback() external {
         pay(msg.sender, balance(msg.sender));
     }
 
@@ -74,6 +75,14 @@ contract TransferVault is Vault {
         _scheduleTime[_to] = scheduleTime;
         _timeLock.queueTransaction(_to, amountClaimed, "", "", scheduleTime);
         emit Withdraw(amountClaimed, _to, scheduleTime);
+    }
+
+    function pay() external {
+        pay(msg.sender);
+    }
+
+    function pay(address _to) public {
+        pay(_to, _paymentFor[_to]);
     }
 
     function pay(uint256 _amount) public {

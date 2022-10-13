@@ -55,7 +55,7 @@ contract TransferVaultTest is Test {
             _transferVault.withdraw(_step);
             assertEq(_transferVault.balance(_OWNER), _step);
             vm.warp(block.timestamp + Constant.MINIMUM_DELAY);
-            _transferVault.pay(_step);
+            _transferVault.pay();
             assertEq(_OWNER.balance, (i + 1) * _step);
         }
         vm.stopPrank();
@@ -72,7 +72,7 @@ contract TransferVaultTest is Test {
         );
         _transferVault.withdraw(_DEPOSIT);
         vm.warp(block.timestamp + Constant.MINIMUM_DELAY);
-        _transferVault.pay(_DEPOSIT);
+        _transferVault.pay();
         vm.stopPrank();
         assertEq(_transferVault.balance(_OWNER), 0);
         assertEq(_OWNER.balance, _DEPOSIT);
@@ -88,7 +88,7 @@ contract TransferVaultTest is Test {
         _transferVault.approve(_SPENDER, 0, _DEPOSIT);
         assertEq(_transferVault.balance(_SPENDER), _DEPOSIT);
         vm.warp(block.timestamp + Constant.MINIMUM_DELAY);
-        _transferVault.pay(_SPENDER, _DEPOSIT);
+        _transferVault.pay(_SPENDER);
         vm.stopPrank();
         assertEq(_transferVault.balance(_SPENDER), 0);
         assertEq(_transferVault.shares(_SPENDER), 0);
