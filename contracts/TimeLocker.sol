@@ -20,7 +20,6 @@ interface TimeLocker {
     error ExecutionFailed(bytes32 txHash);
 
     event ReceiveEth(address sender, uint256 amount);
-    event SendEth(address recipient, uint256 amount);
     event CancelTransaction(
         bytes32 indexed txHash,
         address indexed target,
