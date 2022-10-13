@@ -2,6 +2,11 @@
 
 A simple vault smart contract example.
 
+| Contract          | Ethereum Address                           | Version |
+| ----------------- | ------------------------------------------ | ------- |
+| TransferVault     | 0xc0B89372454898a9Db24F21BC99BB35A5110F0E6 | 0.0.8   |
+
+
 Deployed to `0x1E593FC13aE2FAa53ca6fB7f2d664478229C363A`
 
 Things to try:

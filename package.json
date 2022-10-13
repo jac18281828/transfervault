@@ -1,7 +1,7 @@
 {
-  "name": "collective-governance-v1",
-  "version": "0.8.5",
-  "description": "Open Source Community Governance Smart Contract",
+  "name": "transfervault",
+  "version": "0.0.8",
+  "description": "Clean TransferVault Example including a TimeLock",
   "main": "index.js",
   "directories": {
     "doc": "docs",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/momentranks/collective-governance-v1.git"
+    "url": "git+https://github.com/jac18281828/transfervault.git"
   },
   "devDependencies": {
     "prettier": "2.7.1",
@@ -28,10 +28,10 @@
     "@openzeppelin/contracts": "4.7.3"
   },
   "keywords": [],
-  "author": "collective",
+  "author": "John Cairns",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/momentranks/collective-governance-v1/issues"
+    "url": "https://github.com/jac18281828/transfervault/issues"
   },
-  "homepage": "https://momentranks.github.io/collective-governance-v1"
+  "homepage": "https://github.com/jac18281828/transfervault"
 }
